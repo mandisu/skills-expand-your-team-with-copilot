@@ -286,12 +286,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getShareLinks(activityName, details) {
+    const activityNameValue = sanitizeForShare(activityName || "").trim();
+    const normalizedActivityName = activityNameValue || "activity";
     const currentUrl = new URL(window.location.href);
     currentUrl.search = "";
     currentUrl.hash = "";
     const baseUrl = currentUrl.toString();
-    const activityUrl = `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
-    const activityNameText = sanitizeForShare(activityName || "an activity");
+    const activityUrl = `${baseUrl}?activity=${encodeURIComponent(normalizedActivityName)}`;
+    const activityNameText = normalizedActivityName;
     const activityDescription = sanitizeForShare(
       details.description || "Join this activity."
     );
@@ -662,10 +664,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const shareUrl = copyShareButton.dataset.shareUrl;
         try {
           await navigator.clipboard.writeText(shareUrl);
-          showMessage("Share link copied to clipboard.", "success");
+          showMessage("Activity link copied.", "success");
         } catch (error) {
           showMessage(
-            "Could not copy link automatically. Please use the WhatsApp, X, or Facebook share buttons instead.",
+            "Unable to copy link. Please try sharing via WhatsApp, X, or Facebook instead.",
             "error"
           );
         }
