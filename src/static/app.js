@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
+  let sharedActivityQuery = "";
+  let shouldFocusSharedActivity = false;
 
   // Authentication state
   let currentUser = null;
@@ -331,6 +333,57 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
+  function normalizeActivityNameForMatch(value) {
+    return sanitizeForShare(value).toLowerCase();
+  }
+
+  function initializeSharedActivityFromUrl() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedActivity = sanitizeForShare(searchParams.get("activity"));
+
+    if (!requestedActivity) {
+      return;
+    }
+
+    sharedActivityQuery = normalizeActivityNameForMatch(requestedActivity);
+    searchQuery = requestedActivity;
+    searchInput.value = requestedActivity;
+    shouldFocusSharedActivity = true;
+  }
+
+  function focusSharedActivityCard() {
+    if (!shouldFocusSharedActivity || !sharedActivityQuery) {
+      return;
+    }
+
+    const activityCards = Array.from(
+      activitiesList.querySelectorAll(".activity-card")
+    );
+
+    let targetCard = activityCards.find(
+      (card) => card.dataset.activityName === sharedActivityQuery
+    );
+
+    if (!targetCard) {
+      targetCard = activityCards.find((card) =>
+        card.dataset.activityName.includes(sharedActivityQuery)
+      );
+    }
+
+    if (!targetCard) {
+      return;
+    }
+
+    targetCard.classList.add("shared-activity-highlight");
+    targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    window.setTimeout(() => {
+      targetCard.classList.remove("shared-activity-highlight");
+    }, 2500);
+
+    shouldFocusSharedActivity = false;
+  }
+
   function getShareLinks(activityName, details) {
     const activityNameValue = sanitizeForShare(activityName || "").trim();
     const normalizedActivityName = activityNameValue || "activity";
@@ -563,12 +616,15 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
+
+    focusSharedActivityCard();
   }
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
+    activityCard.dataset.activityName = normalizeActivityNameForMatch(name);
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -1027,6 +1083,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize app
   initializeTheme();
+  initializeSharedActivityFromUrl();
   checkAuthentication();
   initializeFilters();
   fetchActivities();
