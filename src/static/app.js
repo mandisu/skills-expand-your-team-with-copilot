@@ -281,7 +281,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getShareLinks(activityName, details) {
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     const activityUrl = `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
-    const shareText = `Check out ${activityName} at Mergington High School: ${details.description}`;
+    const safeDescription = String(details.description || "Join this activity.");
+    const shareText = `Check out ${activityName} at Mergington High School: ${safeDescription}`;
 
     const encodedUrl = encodeURIComponent(activityUrl);
     const encodedText = encodeURIComponent(shareText);
@@ -643,18 +644,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const copyShareButton = activityCard.querySelector(".copy-share-link");
-    copyShareButton.addEventListener("click", async () => {
-      const shareUrl = copyShareButton.dataset.shareUrl;
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        showMessage("Share link copied to clipboard.", "success");
-      } catch (error) {
-        showMessage(
-          "Could not copy link automatically. Please copy the web address from your browser's address bar.",
-          "error"
-        );
-      }
-    });
+    if (copyShareButton) {
+      copyShareButton.addEventListener("click", async () => {
+        const shareUrl = copyShareButton.dataset.shareUrl;
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          showMessage("Share link copied to clipboard.", "success");
+        } catch (error) {
+          showMessage(
+            "Could not copy link automatically. Please copy the web address from your browser's address bar.",
+            "error"
+          );
+        }
+      });
+    }
 
     activitiesList.appendChild(activityCard);
   }
