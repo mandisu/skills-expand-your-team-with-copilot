@@ -334,6 +334,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function escapeHtmlAttribute(value) {
+    return escapeHtml(value).replace(/`/g, "&#96;");
+  }
+
   function prepareActivityNameForComparison(value) {
     return sanitizeForShare(value).toLowerCase();
   }
@@ -657,8 +670,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
     const shareLinks = getShareLinks(name, details);
+    const safeShareActivityName = escapeHtmlAttribute(name);
+    const safeShareUrl = escapeHtmlAttribute(shareLinks.activityUrl);
+    const safeDifficultyValue = escapeHtml(details.difficulty || "");
     const difficultyInfo = details.difficulty
-      ? `<p><strong>Difficulty:</strong> ${details.difficulty}</p>`
+      ? `<p><strong>Difficulty:</strong> ${safeDifficultyValue}</p>`
       : "";
 
     // Create activity tag
@@ -721,7 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
           href="${shareLinks.whatsapp}"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share ${name} on WhatsApp"
+          aria-label="Share ${safeShareActivityName} on WhatsApp"
         >
           WhatsApp
         </a>
@@ -730,7 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
           href="${shareLinks.x}"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share ${name} on X"
+          aria-label="Share ${safeShareActivityName} on X"
         >
           X
         </a>
@@ -739,15 +755,15 @@ document.addEventListener("DOMContentLoaded", () => {
           href="${shareLinks.facebook}"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share ${name} on Facebook"
+          aria-label="Share ${safeShareActivityName} on Facebook"
         >
           Facebook
         </a>
         <button
           type="button"
           class="share-button copy-share-link"
-          data-share-url="${shareLinks.activityUrl}"
-          aria-label="Copy share link for ${name}"
+          data-share-url="${safeShareUrl}"
+          aria-label="Copy share link for ${safeShareActivityName}"
         >
           Copy Link
         </button>
