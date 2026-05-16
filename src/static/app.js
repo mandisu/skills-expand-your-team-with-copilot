@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
+  let sharedActivityQuery = "";
+  let shouldFocusSharedActivity = false;
 
   // Authentication state
   let currentUser = null;
@@ -58,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     afternoon: { start: "15:00", end: "18:00" }, // After school hours
     weekend: { days: ["Saturday", "Sunday"] }, // Weekend days
   };
+  const SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS = 2500; // Long enough to notice after auto-scroll.
 
   // Initialize filters from active elements
   function initializeFilters() {
@@ -324,6 +327,143 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function sanitizeForShare(value) {
+    return String(value || "")
+      .normalize("NFKC")
+      .replace(/[\u0000-\u001F\u007F<>`"'\\]/g, " ")
+      .trim();
+  }
+
+  /**
+   * Escapes text before inserting it into HTML templates.
+   * @param {unknown} value Source value that may include HTML characters.
+   * @returns {string} HTML-escaped string used by both content and attribute escaping.
+   */
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  /**
+   * Escapes text before inserting it into an HTML attribute value.
+   * @param {unknown} value Source value that may include attribute-breaking characters.
+   * @returns {string} Escaped string safe for quoted attribute interpolation.
+   */
+  function escapeHtmlAttribute(value) {
+    return escapeHtml(value)
+      .replace(/`/g, "&#96;")
+      .replace(/\n/g, "&#10;")
+      .replace(/\r/g, "&#13;");
+  }
+
+  /**
+   * Allows only http/https share URLs before placing them in href attributes.
+   * @param {unknown} value Candidate URL value.
+   * @returns {string} Safe absolute URL, or "#" when invalid.
+   */
+  function getSafeShareHref(value) {
+    try {
+      const candidateUrl = String(value ?? "");
+      const parsedUrl = new URL(candidateUrl);
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        return "#";
+      }
+
+      return parsedUrl.toString();
+    } catch (error) {
+      return "#";
+    }
+  }
+
+  function prepareActivityNameForComparison(value) {
+    return sanitizeForShare(value).toLowerCase();
+  }
+
+  function initializeSharedActivityFromUrl() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedActivityValue = searchParams.get("activity") || "";
+    const requestedActivity = sanitizeForShare(requestedActivityValue);
+
+    if (!requestedActivity) {
+      return;
+    }
+
+    sharedActivityQuery = prepareActivityNameForComparison(requestedActivity);
+    searchQuery = requestedActivity;
+    searchInput.value = requestedActivity;
+    shouldFocusSharedActivity = true;
+  }
+
+  function focusSharedActivityCard() {
+    if (!shouldFocusSharedActivity || !sharedActivityQuery) {
+      return;
+    }
+
+    const activityCards = Array.from(
+      activitiesList.querySelectorAll(".activity-card")
+    );
+
+    let fallbackPartialMatchCard = null;
+    const targetCard = activityCards.find((card) => {
+      const isExactMatch = card.dataset.activityName === sharedActivityQuery;
+
+      if (
+        !isExactMatch &&
+        !fallbackPartialMatchCard &&
+        card.dataset.activityName.includes(sharedActivityQuery)
+      ) {
+        fallbackPartialMatchCard = card;
+      }
+
+      return isExactMatch;
+    });
+
+    const cardToFocus = targetCard || fallbackPartialMatchCard;
+
+    if (!cardToFocus) {
+      return;
+    }
+
+    cardToFocus.classList.add("shared-activity-highlight");
+    cardToFocus.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    setTimeout(() => {
+      cardToFocus.classList.remove("shared-activity-highlight");
+    }, SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS);
+
+    shouldFocusSharedActivity = false;
+  }
+
+  function getShareLinks(activityName, details) {
+    const activityNameValue = sanitizeForShare(activityName || "").trim();
+    const normalizedActivityName = activityNameValue || "activity";
+    const currentUrl = new URL(window.location.href);
+    currentUrl.search = "";
+    currentUrl.hash = "";
+    const baseUrl = currentUrl.toString();
+    const activityUrl = `${baseUrl}?activity=${encodeURIComponent(normalizedActivityName)}`;
+    const activityNameText = normalizedActivityName;
+    const activityDescription = sanitizeForShare(
+      details.description || "Join this activity."
+    );
+    const shareText = `Check out ${activityNameText} at Mergington High School: ${activityDescription}`;
+
+    const encodedUrl = encodeURIComponent(activityUrl);
+    const encodedText = encodeURIComponent(shareText);
+    const encodedWhatsAppText = encodeURIComponent(`${shareText} ${activityUrl}`);
+
+    return {
+      activityUrl,
+      whatsapp: `https://wa.me/?text=${encodedWhatsAppText}`,
+      x: `https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    };
+  }
+
   // Format schedule for display - handles both old and new format
   function formatSchedule(details) {
     // If schedule_details is available, use the structured data
@@ -478,11 +618,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Apply difficulty filter
       const activityDifficulty = getDifficultyValue(details.difficulty);
-      if (currentDifficulty === "all") {
-        if (activityDifficulty) {
-          return;
-        }
-      } else if (activityDifficulty !== currentDifficulty) {
+      if (
+        currentDifficulty !== "all" &&
+        activityDifficulty !== currentDifficulty
+      ) {
         return;
       }
 
@@ -531,12 +670,15 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
+
+    focusSharedActivityCard();
   }
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
+    activityCard.dataset.activityName = prepareActivityNameForComparison(name);
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -559,8 +701,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const shareLinks = getShareLinks(name, details);
+    const safeShareActivityName = escapeHtmlAttribute(name);
+    const safeWhatsAppShareUrl = escapeHtmlAttribute(
+      getSafeShareHref(shareLinks.whatsapp)
+    );
+    const safeXShareUrl = escapeHtmlAttribute(getSafeShareHref(shareLinks.x));
+    const safeFacebookShareUrl = escapeHtmlAttribute(
+      getSafeShareHref(shareLinks.facebook)
+    );
+    const safeShareUrl = escapeHtmlAttribute(shareLinks.activityUrl);
+    const safeDifficultyValue = escapeHtml(details.difficulty || "");
     const difficultyInfo = details.difficulty
-      ? `<p><strong>Difficulty:</strong> ${details.difficulty}</p>`
+      ? `<p><strong>Difficulty:</strong> ${safeDifficultyValue}</p>`
       : "";
 
     // Create activity tag
@@ -617,6 +770,43 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-actions">
+        <a
+          class="share-button"
+          href="${safeWhatsAppShareUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share ${safeShareActivityName} on WhatsApp"
+        >
+          WhatsApp
+        </a>
+        <a
+          class="share-button"
+          href="${safeXShareUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share ${safeShareActivityName} on X"
+        >
+          X
+        </a>
+        <a
+          class="share-button"
+          href="${safeFacebookShareUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share ${safeShareActivityName} on Facebook"
+        >
+          Facebook
+        </a>
+        <button
+          type="button"
+          class="share-button copy-share-link"
+          data-share-url="${safeShareUrl}"
+          aria-label="Copy share link for ${safeShareActivityName}"
+        >
+          Copy Link
+        </button>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -650,6 +840,22 @@ document.addEventListener("DOMContentLoaded", () => {
           openRegistrationModal(name);
         });
       }
+    }
+
+    const copyShareButton = activityCard.querySelector(".copy-share-link");
+    if (copyShareButton) {
+      copyShareButton.addEventListener("click", async () => {
+        const shareUrl = copyShareButton.dataset.shareUrl;
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          showMessage("Activity link copied.", "success");
+        } catch (error) {
+          showMessage(
+            "Unable to copy link. Please try sharing via WhatsApp, X, or Facebook instead.",
+            "error"
+          );
+        }
+      });
     }
 
     activitiesList.appendChild(activityCard);
@@ -941,6 +1147,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize app
   initializeTheme();
+  initializeSharedActivityFromUrl();
   checkAuthentication();
   initializeFilters();
   fetchActivities();
