@@ -367,11 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function getSafeShareHref(value) {
     try {
-      const candidateUrl = String(value || "");
-      if (!/^https?:\/\//i.test(candidateUrl)) {
-        return "#";
-      }
-
+      const candidateUrl = String(value ?? "");
       const parsedUrl = new URL(candidateUrl);
       if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
         return "#";
