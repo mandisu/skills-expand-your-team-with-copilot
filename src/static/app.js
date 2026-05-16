@@ -511,11 +511,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Apply difficulty filter
       const activityDifficulty = getDifficultyValue(details.difficulty);
-      if (currentDifficulty === "all") {
-        if (activityDifficulty) {
-          return;
-        }
-      } else if (activityDifficulty !== currentDifficulty) {
+      if (
+        currentDifficulty !== "all" &&
+        activityDifficulty !== currentDifficulty
+      ) {
         return;
       }
 
