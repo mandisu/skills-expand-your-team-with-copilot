@@ -278,16 +278,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function sanitizeForShare(value) {
+    return String(value || "")
+      .normalize("NFKC")
+      .replace(/[\u0000-\u001F\u007F<>`"'\\]/g, " ")
+      .trim();
+  }
+
   function getShareLinks(activityName, details) {
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     const activityUrl = `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
-    const activityNameText = String(activityName || "an activity").replace(
-      /[<>]/g,
-      ""
-    );
-    const activityDescription = String(
+    const activityNameText = sanitizeForShare(activityName || "an activity");
+    const activityDescription = sanitizeForShare(
       details.description || "Join this activity."
-    ).replace(/[<>]/g, "");
+    );
     const shareText = `Check out ${activityNameText} at Mergington High School: ${activityDescription}`;
 
     const encodedUrl = encodeURIComponent(activityUrl);
@@ -658,7 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showMessage("Share link copied to clipboard.", "success");
         } catch (error) {
           showMessage(
-            "Could not copy link. Please highlight and copy the web address at the top of your browser.",
+            "Could not copy link automatically. Please copy the page address from your browser's address bar.",
             "error"
           );
         }
