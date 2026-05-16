@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
-  function normalizeActivityNameForMatch(value) {
+  function normalizeActivityName(value) {
     return sanitizeForShare(value).toLowerCase();
   }
 
@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    sharedActivityQuery = normalizeActivityNameForMatch(requestedActivity);
+    sharedActivityQuery = normalizeActivityName(requestedActivity);
     searchQuery = requestedActivity;
     searchInput.value = requestedActivity;
     shouldFocusSharedActivity = true;
@@ -361,25 +361,33 @@ document.addEventListener("DOMContentLoaded", () => {
       activitiesList.querySelectorAll(".activity-card")
     );
 
-    let targetCard = activityCards.find(
-      (card) => card.dataset.activityName === sharedActivityQuery
-    );
+    let partialMatchCard = null;
+    const targetCard = activityCards.find((card) => {
+      if (card.dataset.activityName === sharedActivityQuery) {
+        return true;
+      }
 
-    if (!targetCard) {
-      targetCard = activityCards.find((card) =>
+      if (
+        !partialMatchCard &&
         card.dataset.activityName.includes(sharedActivityQuery)
-      );
-    }
+      ) {
+        partialMatchCard = card;
+      }
 
-    if (!targetCard) {
+      return false;
+    });
+
+    const cardToFocus = targetCard || partialMatchCard;
+
+    if (!cardToFocus) {
       return;
     }
 
-    targetCard.classList.add("shared-activity-highlight");
-    targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    cardToFocus.classList.add("shared-activity-highlight");
+    cardToFocus.scrollIntoView({ behavior: "smooth", block: "center" });
 
     setTimeout(() => {
-      targetCard.classList.remove("shared-activity-highlight");
+      cardToFocus.classList.remove("shared-activity-highlight");
     }, SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS);
 
     shouldFocusSharedActivity = false;
@@ -625,7 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
-    activityCard.dataset.activityName = normalizeActivityNameForMatch(name);
+    activityCard.dataset.activityName = normalizeActivityName(name);
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
