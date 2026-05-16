@@ -278,6 +278,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function getShareLinks(activityName, details) {
+    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    const activityUrl = `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
+    const shareText = `Check out ${activityName} at Mergington High School: ${details.description}`;
+
+    const encodedUrl = encodeURIComponent(activityUrl);
+    const encodedText = encodeURIComponent(shareText);
+
+    return {
+      activityUrl,
+      whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+      x: `https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    };
+  }
+
   // Format schedule for display - handles both old and new format
   function formatSchedule(details) {
     // If schedule_details is available, use the structured data
@@ -498,6 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const shareLinks = getShareLinks(name, details);
 
     // Create activity tag
     const tagHtml = `
@@ -552,6 +569,43 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-actions">
+        <a
+          class="share-button"
+          href="${shareLinks.whatsapp}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share ${name} on WhatsApp"
+        >
+          WhatsApp
+        </a>
+        <a
+          class="share-button"
+          href="${shareLinks.x}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share ${name} on X"
+        >
+          X
+        </a>
+        <a
+          class="share-button"
+          href="${shareLinks.facebook}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share ${name} on Facebook"
+        >
+          Facebook
+        </a>
+        <button
+          type="button"
+          class="share-button copy-share-link"
+          data-share-url="${shareLinks.activityUrl}"
+          aria-label="Copy share link for ${name}"
+        >
+          Copy Link
+        </button>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -586,6 +640,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    const copyShareButton = activityCard.querySelector(".copy-share-link");
+    copyShareButton.addEventListener("click", async () => {
+      const shareUrl = copyShareButton.dataset.shareUrl;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showMessage("Share link copied to clipboard.", "success");
+      } catch (error) {
+        showMessage("Couldn't copy link. Please copy from your browser URL.", "error");
+      }
+    });
 
     activitiesList.appendChild(activityCard);
   }
