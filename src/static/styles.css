@@ -50,6 +50,21 @@ body {
   font-size: 0.9rem;
 }
 
+body.dark-mode {
+  --background: #121212;
+  --surface: #1e1e1e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --border: #353535;
+  --border-light: #2a2a2a;
+  --border-focus: #4a4a4a;
+  --primary: #3949ab;
+  --primary-light: #5c6bc0;
+  --primary-dark: #283593;
+  --secondary: #ff9800;
+  --secondary-dark: #f57c00;
+}
+
 header {
   text-align: center;
   padding: 12px 0;
@@ -621,6 +636,9 @@ footer {
   position: absolute;
   top: 10px;
   right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 #user-status {
