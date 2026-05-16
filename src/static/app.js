@@ -335,9 +335,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Escapes text before inserting it into HTML content built with innerHTML.
+   * Escapes text before inserting it into HTML templates.
    * @param {unknown} value Source value that may include HTML characters.
-   * @returns {string} HTML-escaped string safe for content interpolation.
+   * @returns {string} HTML-escaped string used by both content and attribute escaping.
    */
   function escapeHtml(value) {
     return String(value ?? "")
@@ -367,7 +367,12 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function getSafeShareHref(value) {
     try {
-      const parsedUrl = new URL(String(value || ""), window.location.origin);
+      const candidateUrl = String(value || "");
+      if (!/^https?:\/\//i.test(candidateUrl)) {
+        return "#";
+      }
+
+      const parsedUrl = new URL(candidateUrl);
       if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
         return "#";
       }
