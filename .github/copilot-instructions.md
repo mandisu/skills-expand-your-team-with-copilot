@@ -9,7 +9,7 @@ For detailed setup and development instructions, please refer to our [Developmen
 Consider the following when communicating with the staff.
 
 - The staff is not technical. Explain in simple terms as much as possible and avoid software jargon.
-- Any new code must be easy to maintain and understand, without significant coding experience.
+- Any new code must be easy for people without significant coding experience to maintain and understand.
 
 ## Program architecture
 
@@ -17,4 +17,4 @@ Consider the following when communicating with the staff.
 - Do not make additional apps or services.
 - Do not make command line tools.
 - Do not create a long single file application. Always use an easy-to-understand directory structure.
-- Only use HTML, CSS, Javascript, and Python. No other languages.
+- Only use HTML, CSS, JavaScript, and Python. No other languages.
