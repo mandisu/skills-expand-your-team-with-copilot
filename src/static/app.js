@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     afternoon: { start: "15:00", end: "18:00" }, // After school hours
     weekend: { days: ["Saturday", "Sunday"] }, // Weekend days
   };
+  const SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS = 2500;
 
   // Initialize filters from active elements
   function initializeFilters() {
@@ -379,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.setTimeout(() => {
       targetCard.classList.remove("shared-activity-highlight");
-    }, 2500);
+    }, SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS);
 
     shouldFocusSharedActivity = false;
   }
