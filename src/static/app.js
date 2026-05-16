@@ -378,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     targetCard.classList.add("shared-activity-highlight");
     targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    window.setTimeout(() => {
+    setTimeout(() => {
       targetCard.classList.remove("shared-activity-highlight");
     }, SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS);
 
