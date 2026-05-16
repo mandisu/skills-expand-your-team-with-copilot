@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     afternoon: { start: "15:00", end: "18:00" }, // After school hours
     weekend: { days: ["Saturday", "Sunday"] }, // Weekend days
   };
-  const SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS = 2500;
+  const SHARED_ACTIVITY_HIGHLIGHT_DURATION_MS = 2500; // Long enough to notice after auto-scroll.
 
   // Initialize filters from active elements
   function initializeFilters() {
@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
-  function normalizeActivityName(value) {
+  function prepareActivityNameForComparison(value) {
     return sanitizeForShare(value).toLowerCase();
   }
 
@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    sharedActivityQuery = normalizeActivityName(requestedActivity);
+    sharedActivityQuery = prepareActivityNameForComparison(requestedActivity);
     searchQuery = requestedActivity;
     searchInput.value = requestedActivity;
     shouldFocusSharedActivity = true;
@@ -362,22 +362,22 @@ document.addEventListener("DOMContentLoaded", () => {
       activitiesList.querySelectorAll(".activity-card")
     );
 
-    let partialMatchCard = null;
+    let fallbackPartialMatchCard = null;
     const targetCard = activityCards.find((card) => {
       const isExactMatch = card.dataset.activityName === sharedActivityQuery;
 
       if (
         !isExactMatch &&
-        !partialMatchCard &&
+        !fallbackPartialMatchCard &&
         card.dataset.activityName.includes(sharedActivityQuery)
       ) {
-        partialMatchCard = card;
+        fallbackPartialMatchCard = card;
       }
 
       return isExactMatch;
     });
 
-    const cardToFocus = targetCard || partialMatchCard;
+    const cardToFocus = targetCard || fallbackPartialMatchCard;
 
     if (!cardToFocus) {
       return;
@@ -633,7 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
-    activityCard.dataset.activityName = normalizeActivityName(name);
+    activityCard.dataset.activityName = prepareActivityNameForComparison(name);
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
