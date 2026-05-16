@@ -285,10 +285,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const encodedUrl = encodeURIComponent(activityUrl);
     const encodedText = encodeURIComponent(shareText);
+    const encodedWhatsAppText = encodeURIComponent(`${shareText} ${activityUrl}`);
 
     return {
       activityUrl,
-      whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+      whatsapp: `https://wa.me/?text=${encodedWhatsAppText}`,
       x: `https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
     };
@@ -648,7 +649,10 @@ document.addEventListener("DOMContentLoaded", () => {
         await navigator.clipboard.writeText(shareUrl);
         showMessage("Share link copied to clipboard.", "success");
       } catch (error) {
-        showMessage("Couldn't copy link. Please copy from your browser URL.", "error");
+        showMessage(
+          "Could not copy link automatically. Please copy the web address from your browser's address bar.",
+          "error"
+        );
       }
     });
 
