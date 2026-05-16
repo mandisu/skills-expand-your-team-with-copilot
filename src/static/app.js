@@ -286,7 +286,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getShareLinks(activityName, details) {
-    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    const currentUrl = new URL(window.location.href);
+    currentUrl.search = "";
+    currentUrl.hash = "";
+    const baseUrl = currentUrl.toString();
     const activityUrl = `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
     const activityNameText = sanitizeForShare(activityName || "an activity");
     const activityDescription = sanitizeForShare(
@@ -662,7 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showMessage("Share link copied to clipboard.", "success");
         } catch (error) {
           showMessage(
-            "Could not copy link automatically. Please copy the page address from your browser's address bar.",
+            "Could not copy link automatically. Please use the WhatsApp, X, or Facebook share buttons instead.",
             "error"
           );
         }
