@@ -334,6 +334,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
+  /**
+   * Escapes text before inserting it into HTML content built with innerHTML.
+   * @param {unknown} value Source value that may include HTML characters.
+   * @returns {string} HTML-escaped string safe for content interpolation.
+   */
   function escapeHtml(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -343,6 +348,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#39;");
   }
 
+  /**
+   * Escapes text before inserting it into an HTML attribute value.
+   * @param {unknown} value Source value that may include attribute-breaking characters.
+   * @returns {string} Escaped string safe for quoted attribute interpolation.
+   */
   function escapeHtmlAttribute(value) {
     return escapeHtml(value).replace(/`/g, "&#96;");
   }
