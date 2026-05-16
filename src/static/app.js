@@ -671,6 +671,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const formattedSchedule = formatSchedule(details);
     const shareLinks = getShareLinks(name, details);
     const safeShareActivityName = escapeHtmlAttribute(name);
+    const safeWhatsAppShareUrl = escapeHtmlAttribute(shareLinks.whatsapp);
+    const safeXShareUrl = escapeHtmlAttribute(shareLinks.x);
+    const safeFacebookShareUrl = escapeHtmlAttribute(shareLinks.facebook);
     const safeShareUrl = escapeHtmlAttribute(shareLinks.activityUrl);
     const safeDifficultyValue = escapeHtml(details.difficulty || "");
     const difficultyInfo = details.difficulty
@@ -734,7 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="share-actions">
         <a
           class="share-button"
-          href="${shareLinks.whatsapp}"
+          href="${safeWhatsAppShareUrl}"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Share ${safeShareActivityName} on WhatsApp"
@@ -743,7 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>
         <a
           class="share-button"
-          href="${shareLinks.x}"
+          href="${safeXShareUrl}"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Share ${safeShareActivityName} on X"
@@ -752,7 +755,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>
         <a
           class="share-button"
-          href="${shareLinks.facebook}"
+          href="${safeFacebookShareUrl}"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Share ${safeShareActivityName} on Facebook"
