@@ -354,7 +354,28 @@ document.addEventListener("DOMContentLoaded", () => {
    * @returns {string} Escaped string safe for quoted attribute interpolation.
    */
   function escapeHtmlAttribute(value) {
-    return escapeHtml(value).replace(/`/g, "&#96;");
+    return escapeHtml(value)
+      .replace(/`/g, "&#96;")
+      .replace(/\n/g, "&#10;")
+      .replace(/\r/g, "&#13;");
+  }
+
+  /**
+   * Allows only http/https share URLs before placing them in href attributes.
+   * @param {unknown} value Candidate URL value.
+   * @returns {string} Safe absolute URL, or "#" when invalid.
+   */
+  function getSafeShareHref(value) {
+    try {
+      const parsedUrl = new URL(String(value || ""), window.location.origin);
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        return "#";
+      }
+
+      return parsedUrl.toString();
+    } catch (error) {
+      return "#";
+    }
   }
 
   function prepareActivityNameForComparison(value) {
@@ -681,9 +702,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const formattedSchedule = formatSchedule(details);
     const shareLinks = getShareLinks(name, details);
     const safeShareActivityName = escapeHtmlAttribute(name);
-    const safeWhatsAppShareUrl = escapeHtmlAttribute(shareLinks.whatsapp);
-    const safeXShareUrl = escapeHtmlAttribute(shareLinks.x);
-    const safeFacebookShareUrl = escapeHtmlAttribute(shareLinks.facebook);
+    const safeWhatsAppShareUrl = escapeHtmlAttribute(
+      getSafeShareHref(shareLinks.whatsapp)
+    );
+    const safeXShareUrl = escapeHtmlAttribute(getSafeShareHref(shareLinks.x));
+    const safeFacebookShareUrl = escapeHtmlAttribute(
+      getSafeShareHref(shareLinks.facebook)
+    );
     const safeShareUrl = escapeHtmlAttribute(shareLinks.activityUrl);
     const safeDifficultyValue = escapeHtml(details.difficulty || "");
     const difficultyInfo = details.difficulty
