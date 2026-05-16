@@ -340,7 +340,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function initializeSharedActivityFromUrl() {
     const searchParams = new URLSearchParams(window.location.search);
-    const requestedActivity = sanitizeForShare(searchParams.get("activity"));
+    const requestedActivityValue = searchParams.get("activity") || "";
+    const requestedActivity = sanitizeForShare(requestedActivityValue);
 
     if (!requestedActivity) {
       return;
@@ -363,18 +364,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let partialMatchCard = null;
     const targetCard = activityCards.find((card) => {
-      if (card.dataset.activityName === sharedActivityQuery) {
-        return true;
-      }
+      const isExactMatch = card.dataset.activityName === sharedActivityQuery;
 
       if (
+        !isExactMatch &&
         !partialMatchCard &&
         card.dataset.activityName.includes(sharedActivityQuery)
       ) {
         partialMatchCard = card;
       }
 
-      return false;
+      return isExactMatch;
     });
 
     const cardToFocus = targetCard || partialMatchCard;
